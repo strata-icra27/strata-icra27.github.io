@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="STRATA learns demonstrated strategies and uses interaction history to select what to try next."><meta name="theme-color" content="#d65d3b"><title>STRATA — Interaction-Informed Retries</title><link rel="stylesheet" href="style.css"><script src="diagrams.js" defer></script><script src="insight.js" defer></script><script src="explainers.js" defer></script><script src="main.js" defer></script></head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main">
+<section class="hero wrap">
+ <p class="eyebrow">ICRA 2027</p>
+ <h1><span>STRATA</span><small>Learning Strategy Representations<br>for Interaction-Informed Retries</small></h1>
+ <p class="intro">A robot cannot always tell which manipulation strategy will work before making contact. STRATA learns strategies from demonstrations, then uses the response to each attempt to decide what to try next.</p>
+ <div class="links"><a class="button primary" href="assets/STRATA.pdf">Paper</a></div>
+</section>
+<section id="video" class="overview-video wrap" aria-label="Paper overview video"><video class="full-video" controls playsinline preload="metadata" poster="assets/video-poster.jpg" aria-label="STRATA narrated supplementary video"><source src="assets/STRATA.mp4" type="video/mp4"></video></section>
+<section id="insight" class="section wrap">
+ <h2>Demonstrated modes shape what to try</h2>
+ <p class="section-lead">Weight, friction, and hinge stiffness can make similar-looking objects need different strategies. The robot needs a starting point before contact, and a way to use the feedback afterward.</p>
+ <p class="insight-premise">Demonstration datasets often contain multiple ways to complete a task. These are not just individual motions to reproduce: their recurring trajectory modes suggest strategies to try when the right one is still unknown.</p>
+ <div class="insight-space-layout" id="insight-visual">
+  <figure class="demonstration-modes"><h3>Example demonstrated trajectories</h3><div id="insight-motions"><img src="assets/insight-motions.svg" alt="Examples of different demonstrated robot motions overlaid on the same box-opening task."></div><figcaption id="motion-caption">Different complete motions can achieve the same goal.</figcaption></figure>
+  <svg class="modes-bridge" viewBox="0 0 60 30" aria-hidden="true"><path d="M2 15H52M43 6L52 15L43 24"/></svg>
+  <div class="mode-to-space"><h3>Trajectory modes</h3><div id="insight-space"><img src="assets/insight-space.svg" alt="Recurring trajectory modes map into a discrete strategy space."></div><h3>Strategy space</h3><p>Motion variations form recurring modes. These modes provide a prior over a finite set of strategies.</p></div>
+ </div>
+ <div class="insight-takeaway"><h3>Retry within a strategy space, rather than search the full trajectory space</h3><p>A strategy can pursue the goal and reveal how the object responds. Even an unsuccessful attempt provides feedback that informs the next choice within this same strategy space.</p></div>
+</section>
+<section id="approach" class="section wrap">
+ <h2>Method</h2>
+ <p class="section-lead">STRATA jointly learns discrete codes for demonstrated trajectory modes and a strategy-conditioned execution policy from complete demonstrations. With the codebooks and execution components frozen, a second policy learns through reinforcement learning to select a code from previous attempts’ observations and actions. The code stays fixed during an attempt, and the recorded interaction informs the next strategy choice.</p>
+ <div class="explorer" id="method-explorer">
+  <div class="method-stages">
+   <div class="method-stage execution-stage"><h3>Strategy Execution Learning</h3><p>Jointly learned from demonstrations</p><div class="method-steps" role="group" aria-label="Strategy execution learning steps"><button type="button" data-method-step="0" aria-pressed="true" aria-controls="method-art method-title method-copy"><span>1</span>Encode the trajectory</button><button type="button" data-method-step="1" aria-pressed="false" aria-controls="method-art method-title method-copy"><span>2</span>Discretize the modes</button><button type="button" data-method-step="2" aria-pressed="false" aria-controls="method-art method-title method-copy"><span>3</span>Execute the strategy</button></div></div>
+   <div class="method-stage selection-stage"><h3>Strategy Selection Through Interaction</h3><p>Learned through reinforcement learning in simulation</p><div class="method-steps" role="group" aria-label="Strategy selection through interaction steps"><button type="button" data-method-step="3" aria-pressed="false" aria-controls="method-art method-title method-copy"><span>4</span>Select from history</button><button type="button" data-method-step="4" aria-pressed="false" aria-controls="method-art method-title method-copy"><span>5</span>Carry out an attempt</button><button type="button" data-method-step="5" aria-pressed="false" aria-controls="method-art method-title method-copy"><span>6</span>Append the interaction</button></div></div>
+  </div>
+  <div class="explorer-caption" aria-live="polite"><h3 id="method-title">Encode the complete demonstrated action trajectory</h3><p id="method-copy">The strategy encoder represents the motion across the entire demonstration. Its representation is learned jointly with the execution policy.</p></div>
+  <div class="art-window method-window" id="method-art"><img src="assets/method.png" alt="STRATA jointly learns strategy representation and execution, then learns selection from interaction history." loading="lazy"></div>
+ </div>
+</section>
+<section id="results" class="section wrap">
+ <h2>Results</h2>
+ <p class="section-lead">STRATA gains more success from subsequent attempts, in simulation and on the real robot without further training.</p>
+ <div class="results-grid">
+  <article class="result"><div class="result-heading"><h3>Simulation</h3><p>20 physical conditions</p></div><div id="simulation-chart" class="success-chart" aria-label="Cumulative success by attempt in simulation"></div><div class="result-reading"><span id="simulation-attempt">Within 3 attempts</span><strong id="simulation-gap">+35.1 pp</strong><small>STRATA − DSRL-PA</small></div><div id="simulation-values" class="result-series" aria-label="Simulation success rates"></div><p class="variant-description">STRATA (RF) starts with a random strategy, then uses learned selection. Rand-PA selects randomly on every attempt.</p></article>
+  <article class="result"><div class="result-heading"><h3>Real robot</h3><p>Four conditions, no further training</p></div><div id="real-chart" class="success-chart" aria-label="Cumulative success by attempt on the real robot"></div><div class="result-reading"><span id="real-attempt">Within 3 attempts</span><strong id="real-gap">+15 pp</strong><small>STRATA − DSRL-PA</small></div><div id="real-values" class="result-series" aria-label="Real-robot success rates"></div></article>
+ </div>
+ <noscript><p>Simulation success within three attempts: STRATA 92.7%, STRATA (RF) 83.8%, DSRL-PS 55.2%, DSRL-PA 57.6%, RMA-like 23.6%, Rand-PA 34.4%. Real robot: STRATA 70%, DSRL-PA 55%.</p></noscript>
+ <div class="protocol"><h3>Evaluation details</h3><p>Simulation: 20 conditions, two seeds, 100 trials per condition and seed. Real robot: four conditions, 10 trials each. Success is cumulative within each attempt budget; simulation means are rounded to one decimal.</p><p>DSRL-PS and DSRL-PA steer an unconditioned execution policy through its initial noise, choosing per step and per attempt respectively. RMA-like selects a strategy at each replanning step using STRATA’s strategy-conditioned execution policy. The DSRL comparisons change both the high-level choice space and executor training. <a href="assets/STRATA.pdf">Full evaluation in the paper.</a></p></div>
+</section>
+<section id="robot" class="section wrap robot-explorer" aria-labelledby="robot-heading">
+ <div class="section-heading"><div><h2 id="robot-heading">Real-robot trials</h2><p>The same initial strategy fails differently. Interaction history informs a different retry in each trial.</p></div><label class="case-selector" for="trial-case"><span>Case</span><select id="trial-case"><option value="slippery">Slippery surface</option><option value="hinge">Stiff hinge</option></select></label></div>
+ <div class="trial-view">
+  <figure class="attempt" id="first-attempt"><div class="video-label">Attempt 1</div><video id="attempt-one" controls muted playsinline preload="metadata" poster="assets/slippery-1.jpg" aria-label="First attempt on a slippery surface"><source src="assets/slippery-1.mp4" type="video/mp4"></video><figcaption id="response">The box slides away.</figcaption></figure>
+  <div class="retry-link" aria-hidden="true"><span>History</span><svg viewBox="0 0 90 24"><path d="M2 12H82M72 3l10 9-10 9"/></svg></div>
+  <figure class="attempt" id="second-attempt"><div class="video-label">Attempt 2</div><video id="attempt-two" controls muted playsinline preload="none" poster="assets/slippery-2.jpg" aria-label="Second attempt on a slippery surface"><source src="assets/slippery-2.mp4" type="video/mp4"></video><figcaption id="adaptation">Press on top to prevent sliding.</figcaption></figure>
+ </div>
+ <div class="trial-controls"><button class="play-trial" type="button" id="play-trial">Play trial <span aria-hidden="true">▶</span></button><span id="trial-status" role="status" aria-live="polite"></span></div>
+</section>
+</main><footer class="wrap"><a class="wordmark" href="#">STRATA</a><a href="assets/STRATA.pdf">Paper</a></footer>
+</body></html>
